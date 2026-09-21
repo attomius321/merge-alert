@@ -18,7 +18,8 @@
     "node": ">=18"
   },
   "scripts": {
-    "start": "node bin/mergealert.js"
+    "start": "node bin/mergealert.js",
+    "test": "node test/mcp.test.js"
   },
   "keywords": [
     "git",
