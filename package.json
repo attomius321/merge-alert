@@ -1,0 +1,30 @@
+{
+  "name": "mergealert",
+  "version": "0.1.0",
+  "description": "Watch git branches and get a desktop notification when they get merged into another branch.",
+  "type": "module",
+  "bin": {
+    "mergealert": "bin/mergealert.js"
+  },
+  "main": "src/server.js",
+  "files": [
+    "bin",
+    "src",
+    "public",
+    "README.md"
+  ],
+  "engines": {
+    "node": ">=18"
+  },
+  "scripts": {
+    "start": "node bin/mergealert.js"
+  },
+  "keywords": [
+    "git",
+    "merge",
+    "branch",
+    "watch",
+    "notification"
+  ],
+  "license": "MIT"
+}

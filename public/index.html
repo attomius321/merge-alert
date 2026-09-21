@@ -1,0 +1,58 @@
+<!doctype html>
+<html lang="en">
+<head>
+  <meta charset="utf-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1" />
+  <title>MergeAlert</title>
+  <link rel="icon" href="data:image/svg+xml,<svg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 100 100'><text y='.9em' font-size='90'>🔀</text></svg>" />
+  <link rel="stylesheet" href="/style.css" />
+</head>
+<body>
+  <header>
+    <h1>🔀 MergeAlert</h1>
+    <div class="controls">
+      <label>check every
+        <input id="interval" type="number" min="10" step="10" /> s
+      </label>
+      <button id="check-all" class="ghost">Check now</button>
+      <button id="enable-notifications" class="ghost">Browser alerts</button>
+    </div>
+  </header>
+
+  <section class="card">
+    <h2>Watch a branch</h2>
+    <form id="add-form">
+      <div class="row">
+        <label class="grow">
+          Repository URL
+          <input id="url" name="url" placeholder="https://github.com/owner/repo.git" required />
+        </label>
+        <button type="button" id="load-branches" class="ghost">Load branches</button>
+      </div>
+      <div class="row">
+        <label class="grow">
+          Branch to watch
+          <input id="branch" name="branch" list="branches" placeholder="feature/my-work" required />
+        </label>
+        <label class="grow">
+          Merged into
+          <input id="target" name="target" list="branches" placeholder="main (default)" />
+        </label>
+        <button type="submit">Add watch</button>
+      </div>
+      <datalist id="branches"></datalist>
+      <p id="form-msg" class="msg"></p>
+    </form>
+  </section>
+
+  <section>
+    <div class="section-head">
+      <h2>Watched branches <span id="count" class="count"></span></h2>
+      <button id="toggle-all" class="link" hidden>Collapse all</button>
+    </div>
+    <div id="watches"></div>
+  </section>
+
+  <script type="module" src="/app.js"></script>
+</body>
+</html>
