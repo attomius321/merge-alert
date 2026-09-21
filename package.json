@@ -4,7 +4,8 @@
   "description": "Watch git branches and get a desktop notification when they get merged into another branch.",
   "type": "module",
   "bin": {
-    "mergealert": "bin/mergealert.js"
+    "mergealert": "bin/mergealert.js",
+    "mergealert-mcp": "bin/mergealert-mcp.js"
   },
   "main": "src/server.js",
   "files": [
@@ -26,5 +27,8 @@
     "watch",
     "notification"
   ],
-  "license": "MIT"
+  "license": "MIT",
+  "dependencies": {
+    "@modelcontextprotocol/sdk": "^1.30.0"
+  }
 }

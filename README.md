@@ -70,6 +70,42 @@ Each watch notifies once, on the transition into `merged` or `gone`. MergeAlert 
 The web UI can also raise browser notifications while it's open — click **Browser alerts** to grant
 permission.
 
+## MCP Server
+
+MergeAlert ships an MCP (Model Context Protocol) server so AI agents can manage
+watches on demand — no polling, no background watcher.
+
+### Hermes Agent
+
+Add to `~/.hermes/config.yaml`:
+
+```yaml
+mcp_servers:
+  mergealert:
+    command: node
+    args:
+      - /absolute/path/to/MergeAlert/bin/mergealert-mcp.js
+```
+
+If installed globally (`npm install -g mergealert`), use the binary name directly:
+
+```yaml
+mcp_servers:
+  mergealert:
+    command: mergealert-mcp
+```
+
+Restart Hermes after editing the config. The following tools become available:
+
+| Tool              | Description                                              |
+|-------------------|----------------------------------------------------------|
+| `add_watch`       | Add a branch watch and immediately check its status      |
+| `remove_watch`    | Remove a watch by ID                                     |
+| `list_watches`    | List all watches with current statuses                   |
+| `check_watch`     | Fetch from remote and check one watch                    |
+| `check_all`       | Fetch all remotes and check every watch                  |
+| `list_branches`   | List remote branches for a repository                    |
+
 ## Config
 
 Everything lives in `~/.mergealert`:
