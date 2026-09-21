@@ -7,7 +7,8 @@ copies. It polls the remotes on a timer, and when a watched branch becomes an an
 target — or disappears upstream, the usual sign of a squash-merge — it fires a notification and
 flips the status in the web UI.
 
-Zero runtime dependencies. Node 18+ and `git` are all it needs.
+Zero runtime dependencies for the core. Node 18+ and `git` are all it needs.
+The MCP server adds `@modelcontextprotocol/sdk` as its only dependency.
 
 ## Install
 
@@ -31,6 +32,7 @@ mergealert add git@github.com:owner/repo.git feature/my-work   # target defaults
 mergealert list
 mergealert check           # check everything once, then exit
 mergealert rm <id>
+mergealert rm --all        # remove all watches
 ```
 
 ## Statuses
@@ -99,12 +101,13 @@ Restart Hermes after editing the config. The following tools become available:
 
 | Tool              | Description                                              |
 |-------------------|----------------------------------------------------------|
-| `add_watch`       | Add a branch watch and immediately check its status      |
-| `remove_watch`    | Remove a watch by ID                                     |
-| `list_watches`    | List all watches with current statuses                   |
-| `check_watch`     | Fetch from remote and check one watch                    |
-| `check_all`       | Fetch all remotes and check every watch                  |
-| `list_branches`   | List remote branches for a repository                    |
+| `add_watch`          | Add a branch watch and immediately check its status      |
+| `remove_watch`       | Remove a watch by ID                                     |
+| `remove_all_watches` | Remove all watches at once                               |
+| `list_watches`       | List all watches with current statuses                   |
+| `check_watch`        | Fetch from remote and check one watch                    |
+| `check_all`          | Fetch all remotes and check every watch                  |
+| `list_branches`      | List remote branches for a repository                    |
 
 ## Config
 
