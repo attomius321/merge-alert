@@ -137,7 +137,9 @@ function isOpen(group) {
 
 function syncToggleAll() {
   const button = $('#toggle-all');
+  const removeAll = $('#remove-all');
   button.hidden = !currentGroups.length;
+  removeAll.hidden = !currentGroups.length;
   button.textContent = currentGroups.every(isOpen) ? 'Collapse all' : 'Expand all';
 }
 
@@ -235,6 +237,18 @@ $('#check-all').onclick = async (event) => {
   event.target.disabled = true;
   try {
     await api('/api/check', { method: 'POST' });
+    refresh();
+  } finally {
+    event.target.disabled = false;
+  }
+};
+
+$('#remove-all').onclick = async (event) => {
+  if (!confirm('Remove all watches?')) return;
+  event.target.disabled = true;
+  try {
+    await api('/api/watches', { method: 'DELETE' });
+    seen.clear();
     refresh();
   } finally {
     event.target.disabled = false;

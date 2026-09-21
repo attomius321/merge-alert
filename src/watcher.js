@@ -55,6 +55,13 @@ export function removeWatch(id) {
   return true;
 }
 
+export function removeAllWatches() {
+  const count = config.watches.length;
+  config.watches = [];
+  persist();
+  return count;
+}
+
 export async function branchesFor(url) {
   await ensureClone(url);
   return { branches: await listBranches(url), default: await defaultBranch(url) };

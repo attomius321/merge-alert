@@ -93,6 +93,11 @@ async function handleApi(req, res, url) {
       : json(res, 404, { error: 'not found' });
   }
 
+  if (method === 'DELETE' && pathname === '/api/watches') {
+    const count = watcher.removeAllWatches();
+    return json(res, 200, { ok: true, removed: count });
+  }
+
   return json(res, 404, { error: 'unknown endpoint' });
 }
 

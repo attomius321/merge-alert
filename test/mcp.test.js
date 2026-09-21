@@ -111,8 +111,8 @@ async function run() {
     console.log('\n— tools/list');
     const tools = await send('tools/list');
     const names = tools.result.tools.map((t) => t.name).sort();
-    const expected = ['add_watch', 'check_all', 'check_watch', 'list_branches', 'list_watches', 'remove_watch'];
-    assert(JSON.stringify(names) === JSON.stringify(expected), `6 tools registered: ${names.join(', ')}`);
+    const expected = ['add_watch', 'check_all', 'check_watch', 'list_branches', 'list_watches', 'remove_all_watches', 'remove_watch'];
+    assert(JSON.stringify(names) === JSON.stringify(expected), `7 tools registered: ${names.join(', ')}`);
 
     // 3. list_watches (empty)
     console.log('\n— list_watches (empty)');
@@ -158,20 +158,25 @@ async function run() {
     const allWatches = JSON.parse(toolText(all));
     assert(Array.isArray(allWatches) && allWatches.length === 1, 'check_all returns 1 watch');
 
-    // 9. remove_watch (bogus id)
+    // 9. remove_all_watches (with watches)
+    console.log('\n— remove_all_watches');
+    const removedAll = await callTool('remove_all_watches');
+    assert(toolText(removedAll).includes('Removed all 1 watch(es)'), 'remove_all removed 1 watch');
+
+    // 10. list_watches (empty after remove all)
+    console.log('\n— list_watches (after remove all)');
+    const emptyAfterAll = await callTool('list_watches');
+    assert(toolText(emptyAfterAll).includes('No watches configured'), 'no watches after remove all');
+
+    // 11. remove_all_watches (already empty)
+    console.log('\n— remove_all_watches (empty)');
+    const removedNone = await callTool('remove_all_watches');
+    assert(toolText(removedNone).includes('No watches to remove'), 'remove_all on empty returns no watches');
+
+    // 12. remove_watch (bogus id)
     console.log('\n— remove_watch (bogus)');
     const bogus = await callTool('remove_watch', { id: 'no-such-id' });
     assert(toolText(bogus).includes('No watch found'), 'bogus id returns not found');
-
-    // 10. remove_watch (real)
-    console.log('\n— remove_watch');
-    const removed = await callTool('remove_watch', { id: watchId });
-    assert(toolText(removed).includes('removed'), 'watch removed');
-
-    // 11. list_watches (empty again)
-    console.log('\n— list_watches (after remove)');
-    const emptyAgain = await callTool('list_watches');
-    assert(toolText(emptyAgain).includes('No watches configured'), 'no watches after remove');
 
   } finally {
     child.kill();

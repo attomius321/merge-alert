@@ -19,6 +19,7 @@ Usage:
   mergealert add <repo-url> <branch> [target]            add a watch from the terminal
   mergealert list                                        show current watches
   mergealert rm <id>                                     remove a watch
+  mergealert rm --all                                    remove all watches
   mergealert check                                       check every watch once, then exit
 
 Clones live in ${ROOT}`);
@@ -63,7 +64,12 @@ try {
   } else if (command === 'list') {
     printWatches(watcher.getWatches());
   } else if (command === 'rm') {
-    console.log(watcher.removeWatch(argv[1]) ? 'removed' : 'no watch with that id');
+    if (argv[1] === '--all') {
+      const count = watcher.removeAllWatches();
+      console.log(count ? `removed all ${count} watch(es)` : 'no watches to remove');
+    } else {
+      console.log(watcher.removeWatch(argv[1]) ? 'removed' : 'no watch with that id');
+    }
   } else if (command === 'check') {
     printWatches(await watcher.checkAll());
   } else if (!command || command.startsWith('--')) {

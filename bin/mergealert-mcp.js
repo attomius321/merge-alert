@@ -51,6 +51,20 @@ server.registerTool(
 );
 
 server.registerTool(
+  'remove_all_watches',
+  {
+    title: 'Remove All Watches',
+    description: 'Remove all branch watches at once.',
+  },
+  async () => {
+    const count = watcher.removeAllWatches();
+    return {
+      content: [{ type: 'text', text: count ? `Removed all ${count} watch(es).` : 'No watches to remove.' }],
+    };
+  },
+);
+
+server.registerTool(
   'list_watches',
   {
     title: 'List Watches',
