@@ -23,7 +23,7 @@
     <h2>Watch a branch</h2>
     <form id="add-form">
       <div class="row">
-        <label class="grow">
+        <label class="grow wide">
           Repository URL
           <input id="url" name="url" placeholder="https://github.com/owner/repo.git" required />
         </label>
@@ -47,11 +47,13 @@
 
   <section>
     <div class="section-head">
-      <h2>Watched branches <span id="count" class="count"></span></h2>
-      <button id="toggle-all" class="link" hidden>Collapse all</button>
-      <button id="remove-all" class="link" hidden>Remove all</button>
+      <h2>Target branches <span id="count" class="count"></span></h2>
+      <div class="section-actions">
+        <button id="toggle-all" class="link" hidden>Show landed</button>
+        <button id="remove-all" class="link" hidden>Remove all</button>
+      </div>
     </div>
-    <div id="watches"></div>
+    <div id="board" class="board"></div>
   </section>
 
   <script type="module" src="/app.js"></script>

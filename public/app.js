@@ -31,61 +31,59 @@ function repoName(url) {
 }
 
 const LANDED = new Set(['merged', 'gone']);
-const openGroups = new Map(); // group key -> expanded, so a re-render keeps your sections open
-let currentGroups = [];
+const showLanded = new Map(); // target -> landed list expanded, so a re-render keeps it
+let currentColumns = [];
 
-// One section per watched branch; the cards inside are the branches it should land in.
-function groupBy(watches) {
-  const groups = new Map();
+// One column per target branch name - watches from different repos that
+// target the same name (e.g. `main`) share a column.
+function columnsFor(watches) {
+  const columns = new Map();
   for (const w of watches) {
-    const key = `${w.url}|${w.branch}`;
-    if (!groups.has(key)) groups.set(key, { key, url: w.url, branch: w.branch, items: [] });
-    groups.get(key).items.push(w);
+    if (!columns.has(w.target)) columns.set(w.target, { target: w.target, items: [] });
+    columns.get(w.target).items.push(w);
   }
-  for (const group of groups.values()) {
-    group.landed = group.items.filter((w) => LANDED.has(w.status)).length;
-    group.status = groupStatus(group.items);
-    group.items.sort((a, b) => a.target.localeCompare(b.target));
+  // `pending` ranks with `open` so a freshly added card doesn't jump once checked.
+  const rank = { error: 0, open: 1, pending: 1 };
+  for (const col of columns.values()) {
+    col.active = col.items
+      .filter((w) => !LANDED.has(w.status))
+      .sort((a, b) => rank[a.status] - rank[b.status] || a.branch.localeCompare(b.branch));
+    col.landed = col.items
+      .filter((w) => LANDED.has(w.status))
+      .sort((a, b) => a.branch.localeCompare(b.branch));
+    col.repos = new Set(col.items.map((w) => repoName(w.url))).size;
   }
-  // `pending` ranks with `open`: a section must not jump around while a freshly
-  // added card is still being checked, only when its real status changes.
-  const rank = { error: 0, open: 1, pending: 1, merged: 2 };
-  return [...groups.values()].sort(
-    (a, b) => rank[a.status] - rank[b.status] || a.branch.localeCompare(b.branch),
+  // Busiest columns first; a column with nothing left to wait on goes last.
+  return [...columns.values()].sort(
+    (a, b) =>
+      (b.active.length > 0) - (a.active.length > 0) ||
+      b.items.length - a.items.length ||
+      a.target.localeCompare(b.target),
   );
 }
 
-function groupStatus(items) {
-  if (items.every((w) => LANDED.has(w.status))) return 'merged';
-  if (items.some((w) => w.status === 'error')) return 'error';
-  if (items.some((w) => w.status === 'pending')) return 'pending';
-  return 'open';
-}
-
-function groupLabel(group) {
-  const total = group.items.length;
-  if (group.status === 'merged') return total > 1 ? `all ${total} merged` : 'merged';
-  if (group.status === 'error') return 'error';
-  return `${group.landed}/${total} merged`;
-}
-
 function watchCard(w) {
-  const el = document.createElement('div');
+  const el = document.createElement('article');
   el.className = `watch ${w.status}`;
   el.innerHTML = `
-    <div class="body">
-      <div class="title">
-        <span class="badge ${w.status}">${w.status}</span>
-        into <code>${w.target}</code>
-      </div>
-      <div class="detail"></div>
-      <div class="shared" hidden></div>
-      <div class="meta"></div>
+    <div class="title">
+      <code class="branch"></code>
+      <span class="badge ${w.status}">${w.status}</span>
     </div>
-    <div class="actions">
-      <button class="link check">check</button>
-      <button class="link remove">remove</button>
+    <div class="repo"></div>
+    <div class="detail"></div>
+    <div class="shared" hidden></div>
+    <div class="foot">
+      <span class="meta"></span>
+      <span class="actions">
+        <button class="link check">check</button>
+        <button class="link remove">remove</button>
+      </span>
     </div>`;
+  el.querySelector('.branch').textContent = w.branch;
+  el.querySelector('.branch').title = w.branch;
+  el.querySelector('.repo').textContent = repoName(w.url);
+  el.querySelector('.repo').title = w.url;
   el.querySelector('.detail').textContent = w.detail || '';
   el.querySelector('.meta').textContent = `checked ${ago(w.lastChecked)}`;
 
@@ -95,9 +93,13 @@ function watchCard(w) {
     const { sha, subject, date, relative, author } = w.lastShared;
     shared.hidden = false;
     shared.title = `${author} - ${new Date(date).toLocaleString()}`;
-    shared.textContent = `last shared with ${w.target}: ${sha} ${subject} - ${formatDate(date)} (${relative})`;
+    shared.innerHTML = '<span class="label">last shared</span> <code></code> <span class="subject"></span> <span class="when"></span>';
+    shared.querySelector('code').textContent = sha;
+    shared.querySelector('.subject').textContent = subject;
+    shared.querySelector('.when').textContent = `${formatDate(date)} (${relative})`;
   }
-  el.querySelector('.check').onclick = async () => {
+  el.querySelector('.check').onclick = async (event) => {
+    event.target.disabled = true;
     await api(`/api/watches/${w.id}/check`, { method: 'POST' });
     refresh();
   };
@@ -108,51 +110,78 @@ function watchCard(w) {
   return el;
 }
 
-function groupSection(group) {
-  const el = document.createElement('details');
-  el.className = `group ${group.status}`;
-  // Finished branches start collapsed - they need no attention.
-  el.open = isOpen(group);
-  el.ontoggle = () => {
-    openGroups.set(group.key, el.open);
-    syncToggleAll();
-  };
+function column(col) {
+  const el = document.createElement('div');
+  el.className = `column${col.active.length ? '' : ' done'}`;
 
-  const summary = document.createElement('summary');
-  summary.innerHTML = `
-    <span class="chev" aria-hidden="true">▸</span>
-    <span class="group-title"><code></code></span>
-    <span class="badge ${group.status}"></span>
-    <span class="group-meta"></span>`;
-  summary.querySelector('code').textContent = group.branch;
-  summary.querySelector('.badge').textContent = groupLabel(group);
-  summary.querySelector('.group-meta').textContent = repoName(group.url);
-  el.append(summary, ...group.items.map(watchCard));
+  const head = document.createElement('div');
+  head.className = 'column-head';
+  head.innerHTML = `
+    <span class="arrow" aria-hidden="true">⤵</span>
+    <code class="target"></code>
+    <span class="tally"></span>`;
+  head.querySelector('.target').textContent = col.target;
+  head.querySelector('.target').title = col.target;
+  head.querySelector('.tally').textContent = `${col.landed.length}/${col.items.length} merged`;
+  if (col.repos > 1) head.title = `${col.repos} repositories`;
+
+  const progress = document.createElement('div');
+  progress.className = 'progress';
+  progress.innerHTML = '<span></span>';
+  progress.firstChild.style.width = `${(col.landed.length / col.items.length) * 100}%`;
+
+  const body = document.createElement('div');
+  body.className = 'column-body';
+  body.append(...col.active.map(watchCard));
+  if (!col.active.length) {
+    body.insertAdjacentHTML('beforeend', '<p class="all-done">Everything landed ✓</p>');
+  }
+
+  if (col.landed.length) {
+    const landed = document.createElement('details');
+    landed.className = 'landed';
+    landed.open = isOpen(col);
+    landed.ontoggle = () => {
+      showLanded.set(col.target, landed.open);
+      syncToggleAll();
+    };
+    const summary = document.createElement('summary');
+    summary.innerHTML = '<span class="chev" aria-hidden="true"></span> landed <span class="badge merged"></span>';
+    summary.querySelector('.badge').textContent = col.landed.length;
+    landed.append(summary, ...col.landed.map(watchCard));
+    body.append(landed);
+  }
+
+  el.append(head, progress, body);
   return el;
 }
 
-function isOpen(group) {
-  return openGroups.get(group.key) ?? group.status !== 'merged';
+function isOpen(col) {
+  return showLanded.get(col.target) ?? false;
 }
 
 function syncToggleAll() {
+  const withLanded = currentColumns.filter((c) => c.landed.length);
   const button = $('#toggle-all');
-  const removeAll = $('#remove-all');
-  button.hidden = !currentGroups.length;
-  removeAll.hidden = !currentGroups.length;
-  button.textContent = currentGroups.every(isOpen) ? 'Collapse all' : 'Expand all';
+  button.hidden = !withLanded.length;
+  $('#remove-all').hidden = !currentColumns.length;
+  button.textContent = withLanded.length && withLanded.every(isOpen) ? 'Hide landed' : 'Show landed';
 }
 
 function render(watches) {
-  $('#count').textContent = watches.length ? `(${watches.length})` : '';
-  const host = $('#watches');
-  host.replaceChildren();
-  currentGroups = watches.length ? groupBy(watches) : [];
-
+  currentColumns = columnsFor(watches);
+  const n = currentColumns.length;
+  $('#count').textContent = watches.length
+    ? `(${n} ${n === 1 ? 'target' : 'targets'}, ${watches.length} ${watches.length === 1 ? 'watch' : 'watches'})`
+    : '';
+  const host = $('#board');
   if (!watches.length) {
     host.innerHTML = '<p class="empty">Nothing watched yet. Add a repo above.</p>';
   } else {
-    host.append(...currentGroups.map(groupSection));
+    // Keep the board's horizontal scroll position across the 5s refresh.
+    const scroll = host.scrollLeft;
+    host.replaceChildren(...currentColumns.map(column));
+    host.scrollLeft = scroll;
   }
   syncToggleAll();
 }
@@ -227,9 +256,10 @@ $('#load-branches').onclick = async () => {
 };
 
 $('#toggle-all').onclick = () => {
-  const expand = !currentGroups.every(isOpen);
-  for (const group of currentGroups) openGroups.set(group.key, expand);
-  for (const el of document.querySelectorAll('.group')) el.open = expand;
+  const withLanded = currentColumns.filter((c) => c.landed.length);
+  const expand = !withLanded.every(isOpen);
+  for (const col of withLanded) showLanded.set(col.target, expand);
+  for (const el of document.querySelectorAll('.landed')) el.open = expand;
   syncToggleAll();
 };
 

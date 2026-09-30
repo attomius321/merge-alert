@@ -31,7 +31,7 @@
 body {
   margin: 0 auto;
   padding: 24px 20px 64px;
-  max-width: 900px;
+  max-width: 1440px;
   background: var(--bg);
   color: var(--text);
   font: 15px/1.5 ui-sans-serif, system-ui, -apple-system, "Segoe UI", Roboto, sans-serif;
@@ -109,38 +109,17 @@ button.link {
   text-decoration: underline;
 }
 
-.watch {
-  display: flex;
-  gap: 14px;
-  align-items: flex-start;
-  background: var(--card);
-  border: 1px solid var(--line);
-  border-left: 4px solid var(--open);
-  border-radius: 10px;
-  padding: 12px 14px;
-  margin-bottom: 10px;
-}
-
-.watch.merged { border-left-color: var(--merged); }
-.watch.gone { border-left-color: var(--gone); }
-.watch.error { border-left-color: var(--error); }
-
-.watch .body { flex: 1; min-width: 0; }
-.watch .title { font-weight: 600; word-break: break-word; }
-.watch .title code { font-family: ui-monospace, SFMono-Regular, Menlo, monospace; font-size: 13px; }
-.watch .detail, .watch .meta { color: var(--muted); font-size: 13px; word-break: break-word; }
-.watch .actions { display: flex; gap: 6px; align-items: center; flex-shrink: 0; }
-
 .badge {
   display: inline-block;
   padding: 2px 8px;
   border-radius: 999px;
-  font-size: 11px;
+  font-size: 10.5px;
   font-weight: 700;
   letter-spacing: .04em;
   text-transform: uppercase;
   color: #fff;
   background: var(--open);
+  flex-shrink: 0;
 }
 
 .badge.merged { background: var(--merged); }
@@ -153,69 +132,9 @@ button.link {
 .msg.error { color: var(--error); }
 .empty { color: var(--muted); font-size: 14px; }
 
-/* --- branch sections --- */
-.group {
-  background: var(--card);
-  border: 1px solid var(--line);
-  border-radius: 10px;
-  margin-bottom: 10px;
-  overflow: hidden;
-}
-
-.group > summary {
-  display: flex;
-  gap: 10px;
-  align-items: center;
-  padding: 12px 14px;
-  cursor: pointer;
-  list-style: none;
-  user-select: none;
-}
-
-.group > summary::-webkit-details-marker { display: none; }
-.group > summary:hover { background: color-mix(in srgb, var(--accent) 7%, transparent); }
-
-.chev {
-  color: var(--muted);
-  font-size: 12px;
-  transition: transform .15s ease;
-}
-
-.group[open] .chev { transform: rotate(90deg); }
-
-.group-title {
-  font-weight: 600;
-  min-width: 0;
-  overflow: hidden;
-  text-overflow: ellipsis;
-  white-space: nowrap;
-}
-
-.group-title code { font-family: ui-monospace, SFMono-Regular, Menlo, monospace; font-size: 13px; }
-
-.group-meta {
-  margin-left: auto;
-  color: var(--muted);
-  font-size: 12px;
-  white-space: nowrap;
-}
-
-.group.merged > summary { color: var(--muted); }
-
-/* Cards nested in a section drop their own frame - the section provides it. */
-.group .watch {
-  border: none;
-  border-left: 3px solid var(--open);
-  border-radius: 0;
-  margin: 0 14px 10px;
-  padding: 8px 12px;
-  background: var(--bg);
-}
-
-.group .watch.merged { border-left-color: var(--merged); }
-.group .watch.gone { border-left-color: var(--gone); }
-.group .watch.error { border-left-color: var(--error); }
-.group .watch .title { font-weight: 500; font-size: 14px; }
+/* The add form: URL row stays narrower so the inputs don't stretch across a wide screen. */
+.card { max-width: 900px; }
+.grow.wide { flex-basis: 420px; }
 
 .section-head {
   display: flex;
@@ -224,11 +143,193 @@ button.link {
   gap: 12px;
 }
 
-.section-head h2 { margin-bottom: 12px; }
+.section-actions { display: flex; gap: 4px; white-space: nowrap; }
+
+code { font-family: ui-monospace, SFMono-Regular, Menlo, monospace; }
+
+/* --- board: one column per target branch --- */
+.board {
+  display: flex;
+  gap: 14px;
+  align-items: flex-start;
+  overflow-x: auto;
+  padding-bottom: 12px;
+  scroll-snap-type: x proximity;
+}
+
+.column {
+  flex: 0 0 310px;
+  display: flex;
+  flex-direction: column;
+  background: color-mix(in srgb, var(--line) 45%, var(--bg));
+  border: 1px solid var(--line);
+  border-radius: 12px;
+  max-height: calc(100vh - 120px);
+  scroll-snap-align: start;
+}
+
+.column-head {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  padding: 12px 14px 8px;
+}
+
+.column-head .arrow { color: var(--accent); font-size: 14px; }
+
+.column-head .target {
+  font-size: 14px;
+  font-weight: 700;
+  min-width: 0;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+
+.column-head .tally {
+  margin-left: auto;
+  color: var(--muted);
+  font-size: 12px;
+  white-space: nowrap;
+}
+
+.progress {
+  height: 3px;
+  margin: 0 14px 10px;
+  border-radius: 999px;
+  background: var(--line);
+  overflow: hidden;
+}
+
+.progress span {
+  display: block;
+  height: 100%;
+  background: var(--merged);
+  transition: width .3s ease;
+}
+
+.column-body {
+  display: flex;
+  flex-direction: column;
+  gap: 8px;
+  padding: 0 10px 10px;
+  overflow-y: auto;
+}
+
+.all-done {
+  margin: 0;
+  padding: 10px 4px;
+  color: var(--merged);
+  font-size: 13px;
+  text-align: center;
+}
+
+/* --- cards --- */
+.watch {
+  background: var(--card);
+  border: 1px solid var(--line);
+  border-left: 3px solid var(--open);
+  border-radius: 8px;
+  padding: 10px 12px;
+  display: flex;
+  flex-direction: column;
+  gap: 4px;
+  box-shadow: 0 1px 2px rgb(0 0 0 / .04);
+}
+
+.watch.merged { border-left-color: var(--merged); }
+.watch.gone { border-left-color: var(--gone); }
+.watch.error { border-left-color: var(--error); }
+.watch.pending { border-left-color: var(--muted); border-left-style: dashed; }
+
+.watch .title {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+}
+
+.watch .branch {
+  font-size: 13px;
+  font-weight: 600;
+  min-width: 0;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+  flex: 1;
+}
+
+.watch .repo {
+  color: var(--accent);
+  font-size: 12px;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+
+.watch .detail { color: var(--muted); font-size: 12.5px; word-break: break-word; }
+.watch.error .detail { color: var(--error); }
 
 .watch .shared {
+  font-size: 12px;
+  color: var(--muted);
+  background: var(--bg);
+  border-radius: 6px;
+  padding: 6px 8px;
+  word-break: break-word;
+}
+
+.watch .shared .label {
+  font-size: 10.5px;
+  text-transform: uppercase;
+  letter-spacing: .04em;
+  font-weight: 600;
+}
+
+.watch .shared code { color: var(--text); font-size: 11.5px; }
+.watch .shared .subject { color: var(--text); }
+.watch .shared .when { display: block; font-size: 11.5px; }
+
+.watch .foot {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 8px;
+  margin-top: 2px;
+}
+
+.watch .meta { color: var(--muted); font-size: 11.5px; }
+.watch .actions { display: flex; gap: 2px; }
+.watch .actions .link { padding: 2px 4px; font-size: 12px; }
+.watch .actions .remove:hover { color: var(--error); }
+
+/* --- landed (merged / gone) drawer at the bottom of each column --- */
+.landed {
+  display: flex;
+  flex-direction: column;
+  gap: 8px;
+}
+
+.landed > summary {
+  display: flex;
+  align-items: center;
+  gap: 6px;
+  padding: 4px;
   color: var(--muted);
   font-size: 12.5px;
-  font-family: ui-monospace, SFMono-Regular, Menlo, monospace;
-  word-break: break-word;
+  cursor: pointer;
+  list-style: none;
+  user-select: none;
+}
+
+.landed > summary::-webkit-details-marker { display: none; }
+.landed > summary:hover { color: var(--text); }
+.landed .watch { opacity: .75; }
+
+.chev { font-size: 11px; }
+.chev::before { content: '▸'; }
+.landed[open] .chev::before { content: '▾'; }
+
+@media (max-width: 640px) {
+  .board { flex-direction: column; }
+  .column { flex-basis: auto; width: 100%; max-height: none; }
 }
