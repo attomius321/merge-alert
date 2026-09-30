@@ -113,6 +113,7 @@ function watchCard(w) {
 function column(col) {
   const el = document.createElement('div');
   el.className = `column${col.active.length ? '' : ' done'}`;
+  el.dataset.target = col.target;
 
   const head = document.createElement('div');
   head.className = 'column-head';
@@ -178,10 +179,17 @@ function render(watches) {
   if (!watches.length) {
     host.innerHTML = '<p class="empty">Nothing watched yet. Add a repo above.</p>';
   } else {
-    // Keep the board's horizontal scroll position across the 5s refresh.
+    // Keep the board's horizontal and each column's vertical scroll position across the 5s refresh.
     const scroll = host.scrollLeft;
+    const columnScroll = new Map(
+      [...host.querySelectorAll('.column')].map((c) => [c.dataset.target, c.querySelector('.column-body').scrollTop]),
+    );
     host.replaceChildren(...currentColumns.map(column));
     host.scrollLeft = scroll;
+    for (const c of host.querySelectorAll('.column')) {
+      const top = columnScroll.get(c.dataset.target);
+      if (top) c.querySelector('.column-body').scrollTop = top;
+    }
   }
   syncToggleAll();
 }
