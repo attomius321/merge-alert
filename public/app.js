@@ -295,5 +295,14 @@ $('#enable-notifications').onclick = async () => {
   message(permission === 'granted' ? 'browser alerts on' : 'browser alerts blocked', permission !== 'granted');
 };
 
+// Remember whether the add form is collapsed across reloads.
+const addCard = $('#add-card');
+try {
+  if (localStorage.getItem('addFormCollapsed') === '1') addCard.open = false;
+} catch {}
+addCard.ontoggle = () => {
+  try { localStorage.setItem('addFormCollapsed', addCard.open ? '0' : '1'); } catch {}
+};
+
 refresh();
 setInterval(refresh, 5000);

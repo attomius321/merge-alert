@@ -19,8 +19,8 @@
     </div>
   </header>
 
-  <section class="card">
-    <h2>Watch a branch</h2>
+  <details id="add-card" class="card" open>
+    <summary><span class="chev"></span><h2>Watch a branch</h2></summary>
     <form id="add-form">
       <div class="row">
         <label class="grow wide">
@@ -43,9 +43,9 @@
       <datalist id="branches"></datalist>
       <p id="form-msg" class="msg"></p>
     </form>
-  </section>
+  </details>
 
-  <section>
+  <section class="board-section">
     <div class="section-head">
       <h2>Target branches <span id="count" class="count"></span></h2>
       <div class="section-actions">

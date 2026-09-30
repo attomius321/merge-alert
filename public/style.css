@@ -28,10 +28,15 @@
 
 * { box-sizing: border-box; }
 
+/* Page fills the viewport exactly; only the board columns scroll. */
 body {
-  margin: 0 auto;
-  padding: 24px 20px 64px;
-  max-width: 1440px;
+  margin: 0;
+  padding: 24px 20px 16px;
+  height: 100vh;
+  height: 100dvh;
+  display: flex;
+  flex-direction: column;
+  overflow: hidden;
   background: var(--bg);
   color: var(--text);
   font: 15px/1.5 ui-sans-serif, system-ui, -apple-system, "Segoe UI", Roboto, sans-serif;
@@ -133,7 +138,30 @@ button.link {
 .empty { color: var(--muted); font-size: 14px; }
 
 /* The add form: URL row stays narrower so the inputs don't stretch across a wide screen. */
-.card { max-width: 900px; }
+.card { max-width: 900px; flex-shrink: 0; }
+
+/* Collapsible add form */
+#add-card > summary {
+  display: flex;
+  align-items: center;
+  gap: 6px;
+  cursor: pointer;
+  list-style: none;
+  user-select: none;
+}
+
+#add-card > summary::-webkit-details-marker { display: none; }
+#add-card > summary h2 { margin: 0; }
+#add-card > summary:hover h2 { color: var(--text); }
+#add-card[open] > summary { margin-bottom: 12px; }
+#add-card[open] .chev::before { content: '▾'; }
+
+.board-section {
+  flex: 1;
+  min-height: 0;
+  display: flex;
+  flex-direction: column;
+}
 .grow.wide { flex-basis: 420px; }
 
 .section-head {
@@ -152,6 +180,8 @@ code { font-family: ui-monospace, SFMono-Regular, Menlo, monospace; }
   display: flex;
   gap: 14px;
   align-items: flex-start;
+  flex: 1;
+  min-height: 0;
   overflow-x: auto;
   padding-bottom: 12px;
   scroll-snap-type: x proximity;
@@ -164,7 +194,8 @@ code { font-family: ui-monospace, SFMono-Regular, Menlo, monospace; }
   background: color-mix(in srgb, var(--line) 45%, var(--bg));
   border: 1px solid var(--line);
   border-radius: 12px;
-  max-height: calc(100vh - 120px);
+  max-height: 100%;
+  min-height: 0;
   scroll-snap-align: start;
 }
 
@@ -330,6 +361,7 @@ code { font-family: ui-monospace, SFMono-Regular, Menlo, monospace; }
 .landed[open] .chev::before { content: '▾'; }
 
 @media (max-width: 640px) {
+  body { height: auto; overflow: visible; }
   .board { flex-direction: column; }
   .column { flex-basis: auto; width: 100%; max-height: none; }
 }
